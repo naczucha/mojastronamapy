@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa Europy i jej atrakcje</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 600px;
+            width: 100%;
+        }
+        #attractions {
+            margin-top: 20px;
+        }
+        button {
+            margin: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <button id="randomButton">LOSUJ</button>
+    <div id="map"></div>
+    <div id="attractions"></div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        const capitals = [
+            { name: "Amsterdam", lat: 52.3676, lon: 4.9041, attractions: ["Rijksmuseum", "Kanały Amsterdamu"] },
+            { name: "Andora", lat: 42.5078, lon: 1.5211, attractions: ["Caldea Spa", "Casa de la Vall"] },
+            { name: "Ateny", lat: 37.9838, lon: 23.7275, attractions: ["Akropol", "Partenon"] },
+            { name: "Belgrad", lat: 44.7866, lon: 20.4489, attractions: ["Twierdza Kalemegdan", "Świątynia św. Sawy"] },
+            { name: "Berlin", lat: 52.5200, lon: 13.4050, attractions: ["Brama Brandenburska", "Muzeum Pergamońskie"] },
+            { name: "Bern", lat: 46.9481, lon: 7.4474, attractions: ["Zytglogge", "Rzeka Aare"] },
+            { name: "Bratysława", lat: 48.1486, lon: 17.1077, attractions: ["Zamek Bratysławski", "Stare Miasto"] },
+            { name: "Bruksela", lat: 50.8503, lon: 4.3517, attractions: ["Grand Place", "Atomium"] },
+            { name: "Budapeszt", lat: 47.4979, lon: 19.0402, attractions: ["Zamek Buda", "Parlament Węgierski"] },
+            { name: "Bukareszt", lat: 44.4268, lon: 26.1025, attractions: ["Pałac Parlamentu", "Park Herăstrău"] },
+            { name: "Dublin", lat: 53.3498, lon: -6.2603, attractions: ["Guinness Storehouse", "Trinity College"] },
+            { name: "Helsinki", lat: 60.1695, lon: 24.9354, attractions: ["Twierdza Suomenlinna", "Katedra w Helsinkach"] },
+            { name: "Kijów", lat: 50.4501, lon: 30.5234, attractions: ["Ławra Peczerska", "Złota Brama"] },
+            { name: "Kopenhaga", lat: 55.6761, lon: 12.5683, attractions: ["Nyhavn", "Pałac Christiansborg"] },
+            { name: "Lizbona", lat: 38.7223, lon: -9.1393, attractions: ["Most 25 Kwietnia", "Wieża Belem"] },
+            { name: "Lublana", lat: 46.0569, lon: 14.5058, attractions: ["Zamek w Lublanie", "Most Smoka"] },
+            { name: "Londyn", lat: 51.5074, lon: -0.1278, attractions: ["Tower of London", "Pałac Buckingham"] },
+            { name: "Luksemburg", lat: 49.6117, lon: 6.1319, attractions: ["Kazamaty Bock", "Pałac Wielkich Książąt"] },
+            { name: "Madryt", lat: 40.4168, lon: -3.7038, attractions: ["Pałac Królewski", "Muzeum Prado"] },
+            { name: "Mińsk", lat: 53.9045, lon: 27.5615, attractions: ["Wyspa Łez", "Biblioteka Narodowa Białorusi"] },
+            { name: "Monako", lat: 43.7384, lon: 7.4246, attractions: ["Pałac Książęcy", "Kasyno Monte Carlo"] },
+            { name: "Moskwa", lat: 55.7558, lon: 37.6173, attractions: ["Kreml", "Cerkiew Wasyla Błogosławionego"] },
+            { name: "Oslo", lat: 59.9139, lon: 10.7522, attractions: ["Vigeland Park", "Opera w Oslo"] },
+            { name: "Paryż", lat: 48.8566, lon: 2.3522, attractions: ["Wieża Eiffla", "Luwr"] },
+            { name: "Podgorica", lat: 42.4410, lon: 19.2636, attractions: ["Milenijum Bridge", "Cerkiew św. Jerzego"] },
+            { name: "Praga", lat: 50.0755, lon: 14.4378, attractions: ["Most Karola", "Zamek Praski"] },
+            { name: "Reykjavik", lat: 64.1355, lon: -21.8954, attractions: ["Hallgrimskirkja", "Perlan"] },
+            { name: "Riga", lat: 56.9496, lon: 24.1052, attractions: ["Stare Miasto", "Pomnik Wolności"] },
+            { name: "Rzym", lat: 41.9028, lon: 12.4964, attractions: ["Koloseum", "Watykan"] },
+            { name: "San Marino", lat: 43.9333, lon: 12.4500, attractions: ["Forteca Guaita", "Palazzo Pubblico"] },
+            { name: "Sarajewo", lat: 43.8563, lon: 18.4131, attractions: ["Baščaršija", "Muzeum Tunelu"] },
+            { name: "Skopje", lat: 41.9981, lon: 21.4254, attractions: ["Kamienny Most", "Twierdza Kale"] },
+            { name: "Sofia", lat: 42.6977, lon: 23.3219, attractions: ["Katedra Aleksandra Newskiego", "Cerkiew Bojańska"] },
+            { name: "Sztokholm", lat: 59.3293, lon: 18.0686, attractions: ["Muzeum Vasa", "Gamla Stan"] },
+            { name: "Tallinn", lat: 59.4370, lon: 24.7535, attractions: ["Stare Miasto", "Kadriorg Palace"] },
+            { name: "Tirana", lat: 41.3275, lon: 19.8187, attractions: ["Plac Skanderbega", "Piramida w Tiranie"] },
+            { name: "Vaduz", lat: 47.1410, lon: 9.5209, attractions: ["Zamek Vaduz", "Katedra św. Florina"] },
+            { name: "Warszawa", lat: 52.2297, lon: 21.0122, attractions: ["Zamek Królewski", "Łazienki Królewskie"] },
+            { name: "Watykan", lat: 41.9029, lon: 12.4534, attractions: ["Bazylika św. Piotra", "Kaplica Sykstyńska"] },
+            { name: "Wilno", lat: 54.6872, lon: 25.2797, attractions: ["Ostra Brama", "Zamek Giedymina"] },
+            { name: "Zagrzeb", lat: 45.8150, lon: 15.9819, attractions: ["Katedra w Zagrzebiu", "Targ Dolac"] },
+            { name: "Mińsk", lat: 53.9045, lon: 27.5615, attractions: ["Wyspa Łez", "Biblioteka Narodowa"] },
+        ];
+
+        const map = L.map('map').setView([54.5260, 15.2551], 4);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        capitals.forEach(capital => {
+            const marker = L.marker([capital.lat, capital.lon]).addTo(map);
+            marker.bindPopup(`<b>${capital.name}</b><br>${capital.attractions.join("<br>")}`);
+        });
+
+        document.getElementById('randomButton').addEventListener('click', () => {
+            const randomIndex = Math.floor(Math.random() * capitals.length);
+            const randomCapital = capitals[randomIndex];
+            map.setView([randomCapital.lat, randomCapital.lon], 8);
+            L.popup()
+                .setLatLng([randomCapital.lat, randomCapital.lon])
+                .setContent(`<b>${randomCapital.name}</b><br>${randomCapital.attractions.join("<br>")}`)
+                .openOn(map);
+        });
+    </script>
+</body>
+</html>
